@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MediConnect • Telemedicine & AI Symptom Checker</title>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Noto+Sans:wght@400;500;700;900&display=swap" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link rel="icon" type="image/x-icon" href="data:image/x-icon;base64,"> 
+    <style>
+      /* Premium tablet animation */
+      .device-stage { perspective: 1600px; }
+      .device-frame {
+        --frame-radius: 28px;
+        position: relative;
+        border-radius: var(--frame-radius);
+        background: linear-gradient(135deg, #0f172a 0%, #111827 100%);
+        box-shadow: 0 30px 60px -20px rgba(2, 6, 23, 0.45), inset 0 0 0 1px rgba(148, 163, 184, 0.15);
+        transform-origin: top center;
+        transform-style: preserve-3d;
+        animation: tabletOpen 1100ms cubic-bezier(.22,.9,.2,1) 200ms both;
+      }
+      .device-frame::after {
+        /* camera dot */
+        content: "";
+        position: absolute;
+        top: 10px; left: 50%; transform: translateX(-50%);
+        width: 48px; height: 8px; border-radius: 999px;
+        background: radial-gradient(circle at 20% 50%, rgba(255,255,255,.5), rgba(255,255,255,0) 40%), rgba(255,255,255,.08);
+      }
+      .device-bezel {
+        position: absolute; inset: 0;
+        border-radius: var(--frame-radius);
+        background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,0));
+        pointer-events: none;
+      }
+      .device-shine {
+        position: absolute; inset: 0; border-radius: var(--frame-radius);
+        overflow: hidden; pointer-events: none;
+      }
+      .device-shine::before{
+        content:""; position: absolute; top:-40%; left:-30%;
+        width: 60%; height: 180%; transform: rotate(20deg);
+        background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.18), rgba(255,255,255,0));
+        filter: blur(12px);
+        animation: shineSweep 3.6s ease-in-out 1.2s infinite;
+      }
+      .device-screen {
+        position: absolute; inset: 14px; border-radius: calc(var(--frame-radius) - 14px);
+        overflow: hidden; background: white; box-shadow: inset 0 0 0 1px rgba(2,6,23,.06);
+        transform: translateZ(2px);
+        animation: screenIn 900ms cubic-bezier(.22,.9,.2,1) 380ms both;
+      }
+      .screen-content { width: 100%; height: 100%; position: relative; }
+      /* Faux video frame styles */
+      .video-frame { position:absolute; inset:0; background: linear-gradient(135deg, #e6f3ff 0%, #effcf7 100%); }
+      .video-ui-top { position:absolute; left:0; right:0; top:0; height:36px; display:flex; align-items:center; gap:8px; padding:0 12px; background: rgba(255,255,255,.6); border-bottom: 1px solid rgba(15,23,42,.07); }
+      .ui-dot { width:10px; height:10px; border-radius:999px; }
+      .ui-dot.red{ background:#ef4444; } .ui-dot.yellow{ background:#f59e0b; } .ui-dot.green{ background:#22c55e; }
+      .video-ui-bottom { position:absolute; left:0; right:0; bottom:0; height:44px; display:flex; align-items:center; justify-content:center; gap:10px; padding:0 12px; background: rgba(255,255,255,.7); border-top: 1px solid rgba(15,23,42,.07); }
+      .ui-bar { height:6px; width:52%; background: rgba(2,6,23,.1); border-radius:999px; position:relative; overflow:hidden; }
+      .ui-progress { position:absolute; left:0; top:0; bottom:0; width:38%; background:#0284c7; border-radius:999px; animation: progressLoop 12s linear infinite; }
+      .ui-btn { height:26px; min-width:26px; display:inline-flex; align-items:center; justify-content:center; border-radius:8px; background:#0ea5a4; color:#fff; font-size:12px; padding:0 10px; box-shadow: 0 8px 14px -8px rgba(14,165,164,.6); }
+
+      /* SVG animations */
+      .float-slow { animation: float 5s ease-in-out infinite alternate; }
+      .float-mid  { animation: float 4s ease-in-out 1s infinite alternate; }
+      .bob        { animation: bob 3.6s ease-in-out infinite alternate; transform-origin: center; transform-box: fill-box; }
+      .blink { transform-origin: center; transform-box: fill-box; animation: blink 6s ease-in-out infinite; }
+      .pulse { animation: pulse 2.4s ease-in-out infinite; transform-origin:center; transform-box: fill-box; }
+      .rotate-scan { animation: rotateScan 6s linear infinite; transform-origin: center; transform-box: fill-box; }
+      .ecg-line { stroke-dasharray: 6 10; animation: heartbeatMove 1.9s linear infinite; }
+      .bar-1 { animation: barGrow1 2.6s ease-in-out infinite alternate; }
+      .bar-2 { animation: barGrow2 2.6s ease-in-out .4s infinite alternate; }
+      .bar-3 { animation: barGrow3 2.6s ease-in-out .8s infinite alternate; }
+
+      @keyframes float { to { transform: translateY(-8px); } }
+      @keyframes bob { to { transform: translateY(-6px) rotate(-2deg); } }
+      @keyframes blink { 0%,92%,100% { transform: scaleY(1); } 96% { transform: scaleY(.1); } }
+      @keyframes pulse {
+        0% { transform: scale(1); opacity:.9; }
+        50% { transform: scale(1.06); opacity:1; }
+        100% { transform: scale(1); opacity:.9; }
+      }
+      @keyframes rotateScan { to { transform: rotate(360deg); } }
+      @keyframes heartbeatMove { to { stroke-dashoffset: -160; } }
+      @keyframes barGrow1 { from{ transform: scaleY(.6);} to{ transform: scaleY(1);} }
+      @keyframes barGrow2 { from{ transform: scaleY(.4);} to{ transform: scaleY(.95);} }
+      @keyframes barGrow3 { from{ transform: scaleY(.3);} to{ transform: scaleY(.8);} }
+      @keyframes progressLoop { 0%{ width: 0%; } 40%{ width: 58%; } 100%{ width: 0%; } }
+
+      @keyframes tabletOpen {
+        0% { transform: rotateX(70deg) scale(.9); opacity: 0; }
+        60% { transform: rotateX(10deg) scale(1.02); opacity: 1; }
+        100% { transform: rotateX(0deg) scale(1); }
+      }
+      @keyframes screenIn {
+        0% { transform: translateZ(2px) translateY(12px) scale(.98); opacity: 0; }
+        100% { transform: translateZ(2px) translateY(0) scale(1); opacity: 1; }
+      }
+      @keyframes shineSweep {
+        0% { transform: translateX(-120%) rotate(20deg); opacity:.0; }
+        20% { opacity:.35; }
+        60% { opacity:.2; }
+        100% { transform: translateX(220%) rotate(20deg); opacity:0; }
+      }
+      @keyframes contentFloat {
+        0% { transform: translateY(0); }
+        100% { transform: translateY(-6px); }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .device-frame, .device-screen, .device-shine::before, .float-slow, .float-mid, .bob, .blink, .pulse, .rotate-scan, .ecg-line, .bar-1, .bar-2, .bar-3, .ui-progress { animation: none !important; }
+      }
+    </style>
+  </head>
+  <body class="min-h-screen bg-slate-50 text-slate-900 antialiased" style='font-family: Manrope, "Noto Sans", system-ui, sans-serif;'>
+    <!-- Header -->
+    <header class="sticky top-0 z-40 border-b border-slate-200/70 bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/60">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="flex h-16 items-center justify-between">
+          <a href="index.html" class="flex items-center gap-2.5 group" aria-label="MediConnect Home">
+            <span class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-sky-500 to-emerald-400 text-white shadow-sm">
+              <i class="fas fa-heartbeat"></i>
+            </span>
+            <span class="text-lg font-extrabold tracking-tight group-hover:text-sky-600 transition">MediConnect</span>
+          </a>
+          <nav class="hidden md:flex items-center gap-8 text-sm font-medium">
+            <a class="hover:text-sky-700" href="index.html">Home</a>
+            <a class="hover:text-sky-700" href="symptom-input.html">Symptom Check</a>
+            <a class="hover:text-sky-700" href="doctor-booking.html">Book Doctor</a>
+            <a class="hover:text-sky-700" href="e-pharma.html">E-Pharmacy</a>
+          </nav>
+          <div class="hidden md:flex items-center gap-3">
+            <a href="symptom-input.html" class="inline-flex items-center gap-2 rounded-xl bg-sky-600 px-4 py-2 text-white shadow-sm hover:bg-sky-700 transition">
+              <i class="fas fa-stethoscope"></i>
+              Start Check
+            </a>
+          </div>
+          <button id="mobileMenuBtn" class="md:hidden inline-flex h-9 w-9 items-center justify-center rounded-md border border-slate-300 text-slate-700">
+            <i class="fas fa-bars"></i>
+          </button>
+        </div>
+        <div id="mobileMenu" class="md:hidden hidden pb-4">
+          <nav class="grid gap-2 text-sm">
+            <a class="rounded-lg px-3 py-2 hover:bg-slate-100" href="index.html">Home</a>
+            <a class="rounded-lg px-3 py-2 hover:bg-slate-100" href="symptom-input.html">Symptom Check</a>
+            <a class="rounded-lg px-3 py-2 hover:bg-slate-100" href="doctor-booking.html">Book Doctor</a>
+            <a class="rounded-lg px-3 py-2 hover:bg-slate-100" href="e-pharma.html">E-Pharmacy</a>
+          </nav>
+        </div>
+      </div>
+    </header>
+
+    <!-- Hero -->
+    <section class="relative overflow-hidden">
+      <div class="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-sky-500/10 blur-3xl"></div>
+      <div class="absolute -bottom-24 -left-24 h-80 w-80 rounded-full bg-emerald-400/10 blur-3xl"></div>
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-14 md:py-20">
+        <div class="grid items-center gap-10 md:grid-cols-2">
+          <div class="space-y-6">
+            <span class="inline-flex items-center gap-2 rounded-full border border-sky-200 bg-sky-50 px-3 py-1 text-xs font-semibold text-sky-700">
+              <i class="fas fa-shield-heart"></i>
+              Trusted Telemedicine Platform
+            </span>
+            <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight text-slate-900">
+              Consult doctors online and assess symptoms with AI
+            </h1>
+            <p class="text-slate-600 text-base md:text-lg max-w-prose">
+              Secure, convenient care from licensed professionals. Get quick guidance, book appointments, and find reliable pharmacies—all in one place.
+            </p>
+            <div class="flex flex-wrap items-center gap-3">
+              <a href="symptom-input.html" class="inline-flex items-center gap-2 rounded-xl bg-sky-600 px-5 py-3 text-white shadow-sm hover:bg-sky-700 transition">
+                <i class="fas fa-brain"></i>
+                Try Symptom Checker
+              </a>
+              <a href="doctor-booking.html" class="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-5 py-3 text-slate-800 hover:bg-slate-50">
+                <i class="fas fa-user-md"></i>
+                Book a Doctor
+              </a>
+            </div>
+            <div class="flex items-center gap-6 pt-3 text-xs text-slate-600">
+              <div class="flex items-center gap-2"><i class="fas fa-lock text-emerald-500"></i> HIPAA-style privacy</div>
+              <div class="flex items-center gap-2"><i class="fas fa-clock text-sky-500"></i> 24/7 access</div>
+            </div>
+          </div>
+          <div class="relative device-stage">
+            <div class="device-frame mx-auto aspect-[4/3] w-full max-w-lg">
+              <div class="device-bezel"></div>
+              <div class="device-shine"></div>
+              <div class="device-screen">
+                <div class="screen-content">
+                  <div class="video-frame">
+                    <div class="video-ui-top">
+                      <span class="ui-dot red"></span><span class="ui-dot yellow"></span><span class="ui-dot green"></span>
+                      <span class="ml-2 text-[11px] font-semibold text-slate-700">Doctor Analysis</span>
+                    </div>
+                    <svg viewBox="0 0 800 480" width="100%" height="100%" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Doctor analyzing patient data">
+                      <defs>
+                        <linearGradient id="bggrad" x1="0" y1="0" x2="1" y2="1">
+                          <stop offset="0%" stop-color="#e0f2fe"/>
+                          <stop offset="100%" stop-color="#ecfdf5"/>
+                        </linearGradient>
+                        <linearGradient id="cardgrad" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stop-color="#ffffff" stop-opacity="0.9"/>
+                          <stop offset="100%" stop-color="#ffffff" stop-opacity="0.8"/>
+                        </linearGradient>
+                      </defs>
+                      <rect x="0" y="0" width="800" height="480" fill="url(#bggrad)"/>
+
+                      <!-- Floating decor shapes -->
+                      <g opacity=".3" class="float-slow">
+                        <circle cx="110" cy="80" r="28" fill="#38bdf8"/>
+                        <circle cx="740" cy="110" r="18" fill="#34d399"/>
+                      </g>
+
+                      <!-- Left: Doctor figure -->
+                      <g transform="translate(120,70)">
+                        <!-- coat/body -->
+                        <rect x="0" y="120" rx="18" ry="18" width="220" height="220" fill="url(#cardgrad)" stroke="#cbd5e1"/>
+                        <!-- stethoscope circle -->
+                        <circle cx="110" cy="220" r="20" fill="#0ea5a4" class="pulse"/>
+                        <!-- head -->
+                        <g class="bob">
+                          <circle cx="110" cy="110" r="38" fill="#0ea5a4"/>
+                          <!-- eyes -->
+                          <g class="blink">
+                            <rect x="96" y="102" width="8" height="4" rx="2" fill="#0f172a"/>
+                            <rect x="116" y="102" width="8" height="4" rx="2" fill="#0f172a"/>
+                          </g>
+                        </g>
+                        <!-- clipboard -->
+                        <g transform="translate(150,210)" class="float-mid">
+                          <rect x="0" y="0" width="80" height="100" rx="10" fill="#ffffff" stroke="#cbd5e1"/>
+                          <rect x="24" y="-8" width="32" height="10" rx="4" fill="#94a3b8"/>
+                          <rect x="14" y="22" width="52" height="6" rx="3" fill="#e2e8f0"/>
+                          <rect x="14" y="40" width="52" height="6" rx="3" fill="#e2e8f0"/>
+                          <rect x="14" y="58" width="36" height="6" rx="3" fill="#e2e8f0"/>
+                          <circle cx="14" cy="84" r="5" fill="#22c55e"/>
+                        </g>
+                      </g>
+
+                      <!-- Right: Live panels -->
+                      <g transform="translate(390,70)">
+                        <!-- panel card -->
+                        <rect x="0" y="0" width="360" height="280" rx="18" fill="url(#cardgrad)" stroke="#cbd5e1"/>
+                        <text x="20" y="34" font-family="Manrope, sans-serif" font-size="16" font-weight="800" fill="#0f172a">Vitals Overview</text>
+
+                        <!-- ECG line -->
+                        <g transform="translate(16,60)">
+                          <rect x="0" y="-22" width="328" height="110" rx="10" fill="#f8fafc"/>
+                          <path class="ecg-line" d="M0,20 L20,20 L30,0 L40,40 L60,20 L100,20 L110,10 L120,30 L140,20 L180,20 L190,5 L200,35 L220,20 L260,20 L270,0 L280,40 L300,20 L328,20" stroke="#0284c7" stroke-width="3" fill="none"/>
+                        </g>
+
+                        <!-- Bars -->
+                        <g transform="translate(20,172)">
+                          <rect x="0" y="0" width="12" height="80" fill="#bae6fd" transform-origin="6 80" class="bar-1"/>
+                          <rect x="24" y="0" width="12" height="80" fill="#7dd3fc" transform-origin="6 80" class="bar-2"/>
+                          <rect x="48" y="0" width="12" height="80" fill="#38bdf8" transform-origin="6 80" class="bar-3"/>
+                          <text x="74" y="16" font-size="12" fill="#334155">Heart Rate</text>
+                          <text x="74" y="36" font-size="12" fill="#334155">SpO₂</text>
+                          <text x="74" y="56" font-size="12" fill="#334155">Temp</text>
+                        </g>
+                      </g>
+
+                      <!-- Scanner magnifier -->
+                      <g transform="translate(360,360)" class="rotate-scan">
+                        <circle cx="0" cy="0" r="26" fill="none" stroke="#0ea5a4" stroke-width="4"/>
+                        <rect x="24" y="-2" width="26" height="4" rx="2" fill="#0ea5a4"/>
+                      </g>
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SOS Floating Button -->
+      <button id="sosBtn" class="fixed bottom-6 right-6 z-50 group inline-flex items-center gap-3 rounded-full bg-red-600 px-5 py-3 font-semibold text-white shadow-lg shadow-red-500/30 hover:bg-red-700 focus:outline-none focus:ring-4 focus:ring-red-400/60 transition">
+        <i class="fas fa-truck-medical text-lg animate-pulse"></i>
+        <span class="hidden sm:inline">SOS / Ambulance</span>
+      </button>
+    </section>
+
+    <!-- Key features -->
+    <section class="py-12 md:py-16">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="mx-auto max-w-3xl text-center">
+          <h2 class="text-3xl font-extrabold tracking-tight">Why choose MediConnect?</h2>
+          <p class="mt-3 text-slate-600">Experience seamless care designed around you.</p>
+        </div>
+        <div class="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div class="mb-3 inline-flex h-11 w-11 items-center justify-center rounded-lg bg-sky-600 text-white"><i class="fas fa-clock"></i></div>
+            <h3 class="font-semibold">24/7 Availability</h3>
+            <p class="mt-1 text-sm text-slate-600">Connect with providers anytime, from anywhere.</p>
+          </div>
+          <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div class="mb-3 inline-flex h-11 w-11 items-center justify-center rounded-lg bg-emerald-600 text-white"><i class="fas fa-user-shield"></i></div>
+            <h3 class="font-semibold">Secure & Confidential</h3>
+            <p class="mt-1 text-sm text-slate-600">Enterprise-grade security and privacy.</p>
+          </div>
+          <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div class="mb-3 inline-flex h-11 w-11 items-center justify-center rounded-lg bg-purple-600 text-white"><i class="fas fa-users"></i></div>
+            <h3 class="font-semibold">Multi-specialty Network</h3>
+            <p class="mt-1 text-sm text-slate-600">Find the right specialist for your needs.</p>
+          </div>
+          <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div class="mb-3 inline-flex h-11 w-11 items-center justify-center rounded-lg bg-amber-500 text-white"><i class="fas fa-robot"></i></div>
+            <h3 class="font-semibold">AI Symptom Guide</h3>
+            <p class="mt-1 text-sm text-slate-600">Evidence-informed guidance in minutes.</p>
+          </div>
+          <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div class="mb-3 inline-flex h-11 w-11 items-center justify-center rounded-lg bg-rose-600 text-white"><i class="fas fa-briefcase-medical"></i></div>
+            <h3 class="font-semibold">E‑Pharmacy Access</h3>
+            <p class="mt-1 text-sm text-slate-600">Open trusted pharmacies with one tap.</p>
+          </div>
+          <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div class="mb-3 inline-flex h-11 w-11 items-center justify-center rounded-lg bg-indigo-600 text-white"><i class="fas fa-location-dot"></i></div>
+            <h3 class="font-semibold">Nearby Care</h3>
+            <p class="mt-1 text-sm text-slate-600">Find hospitals and clinics close to you.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- How it works -->
+    <section class="py-12">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="grid gap-8 lg:grid-cols-2">
+          <div class="rounded-2xl border border-slate-200 bg-white/90 p-8 shadow-sm">
+            <h3 class="text-xl font-bold">How it works</h3>
+            <ol class="mt-4 space-y-3 text-sm text-slate-700">
+              <li><span class="font-semibold">Describe symptoms:</span> enter or dictate your symptoms.</li>
+              <li><span class="font-semibold">AI assessment:</span> get probable causes and risk level.</li>
+              <li><span class="font-semibold">Take action:</span> book a doctor or open pharmacies.</li>
+              <li><span class="font-semibold">Follow up:</span> monitor changes and consult as needed.</li>
+            </ol>
+          </div>
+          <div class="rounded-2xl border border-amber-200 bg-amber-50 p-8">
+            <h3 class="text-xl font-bold text-amber-900">
+              <i class="fas fa-triangle-exclamation mr-2"></i> Disclaimer
+            </h3>
+            <p class="mt-3 text-sm text-amber-800">MediConnect offers informational guidance and does not replace professional medical advice, diagnosis, or treatment. Always consult a qualified provider for serious or persistent conditions.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="py-12">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="rounded-2xl bg-gradient-to-br from-sky-600 to-emerald-500 px-6 py-10 text-white shadow-lg">
+          <div class="grid items-center gap-6 md:grid-cols-2">
+            <div>
+              <h3 class="text-2xl md:text-3xl font-extrabold tracking-tight">Ready to get care?</h3>
+              <p class="mt-2 text-white/90">Start with our AI symptom checker or book a doctor in minutes.</p>
+            </div>
+            <div class="flex flex-wrap items-center gap-3 md:justify-end">
+              <a href="symptom-input.html" class="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-3 font-semibold text-slate-900 hover:bg-slate-50">
+                <i class="fas fa-magnifying-glass" aria-hidden="true"></i>
+                Check Symptoms
+              </a>
+              <a href="doctor-booking.html" class="inline-flex items-center gap-2 rounded-xl border border-white/30 px-5 py-3 font-semibold hover:bg-white/10">
+                <i class="fas fa-calendar-check" aria-hidden="true"></i>
+                Book Now
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-200/70 py-10">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-col items-center gap-4 text-center">
+          <div class="flex items-center gap-2.5">
+            <span class="inline-flex h-8 w-8 items-center justify-center rounded-md bg-sky-600 text-white"><i class="fas fa-heartbeat"></i></span>
+            <span class="font-extrabold">MediConnect</span>
+          </div>
+          <div class="flex flex-wrap items-center justify-center gap-6 text-sm text-slate-600">
+            <a href="#" class="hover:text-slate-900">Terms</a>
+            <a href="#" class="hover:text-slate-900">Privacy</a>
+            <a href="#" class="hover:text-slate-900">Contact</a>
+          </div>
+          <p class="text-xs text-slate-500">© 2025 MediConnect. All rights reserved.</p>
+        </div>
+      </div>
+    </footer>
+
+    <!-- SOS / Ambulance Modal -->
+    <div id="sosModal" class="fixed inset-0 z-[60] hidden items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+      <div class="relative w-full max-w-md overflow-hidden rounded-2xl border border-red-100 bg-white shadow-2xl">
+        <div class="pointer-events-none absolute -top-20 -right-24 h-72 w-72 rounded-full bg-red-500/10 blur-3xl"></div>
+        <div class="relative p-6 space-y-5">
+          <div class="flex items-start gap-4">
+            <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-red-600 text-white shadow-md">
+              <i class="fas fa-truck-medical text-xl"></i>
+            </div>
+            <div class="flex-1">
+              <h3 class="mb-1 text-xl font-extrabold tracking-tight">Emergency Request</h3>
+              <p class="text-sm text-slate-600">Use for real emergencies only. Location (if permitted) helps faster dispatch.</p>
+            </div>
+          </div>
+          <form id="sosForm" class="space-y-4">
+            <div>
+              <label for="sosType" class="mb-1 block text-xs font-semibold uppercase tracking-wide">Emergency Type</label>
+              <select id="sosType" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-red-500 focus:ring-2 focus:ring-red-500">
+                <option value="cardiac">Cardiac / Chest Pain</option>
+                <option value="accident">Accident / Trauma</option>
+                <option value="breathing">Breathing Difficulty</option>
+                <option value="stroke">Stroke Symptoms</option>
+                <option value="other">Other Critical</option>
+              </select>
+            </div>
+            <div>
+              <label for="sosNotes" class="mb-1 block text-xs font-semibold uppercase tracking-wide">Brief Notes (optional)</label>
+              <textarea id="sosNotes" rows="3" class="w-full resize-none rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-red-500 focus:ring-2 focus:ring-red-500" placeholder="e.g., severe chest pain for 10 mins, history of hypertension"></textarea>
+            </div>
+            <div class="flex items-center gap-2 text-xs text-slate-600">
+              <i class="fas fa-location-crosshairs text-red-500"></i>
+              <span id="sosLocationStatus">Location not acquired yet.</span>
+            </div>
+            <div class="flex flex-col gap-2">
+              <button type="button" id="confirmSosBtn" class="h-11 w-full inline-flex items-center justify-center gap-2 rounded-lg bg-red-600 font-bold text-white shadow-lg shadow-red-500/30 transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50">
+                <i class="fas fa-siren-on"></i>
+                <span>Confirm Emergency Dispatch</span>
+              </button>
+              <button type="button" id="cancelSosBtn" class="h-11 w-full inline-flex items-center justify-center gap-2 rounded-lg bg-slate-200 font-semibold text-slate-800 transition hover:bg-slate-300">
+                <i class="fas fa-xmark"></i>
+                Cancel
+              </button>
+            </div>
+            <p class="text-[11px] leading-snug text-amber-600"><strong>Warning:</strong> False requests may be reported and could delay real cases.</p>
+          </form>
+          <div id="sosFeedback" class="hidden rounded-lg border p-3 text-sm font-medium"></div>
+        </div>
+      </div>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="api-service.js"></script>
+    <script src="script.js"></script>
+    <script>
+      // Mobile menu toggle
+      const btn = document.getElementById('mobileMenuBtn');
+      const menu = document.getElementById('mobileMenu');
+      if (btn && menu) btn.addEventListener('click', () => menu.classList.toggle('hidden'));
+    </script>
+  </body>
+</html>

@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Book Doctor - MediConnect</title>
+        <link rel="stylesheet" href="styles.css" />
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Noto+Sans:wght@400;500;700;900&display=swap" />
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
+        <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    </head>
+        <body class="bg-slate-50 min-h-screen flex flex-col" style='font-family: Manrope, "Noto Sans", sans-serif;'>
+        <!-- Header -->
+        <header class="sticky top-0 z-40 border-b border-slate-200/70 bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/60">
+            <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                <div class="flex h-16 items-center justify-between">
+                    <a href="index.html" class="flex items-center gap-2.5 group" aria-label="MediConnect Home">
+                        <span class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-sky-500 to-emerald-400 text-white shadow-sm">
+                            <i class="fas fa-heartbeat"></i>
+                        </span>
+                        <span class="text-lg font-extrabold tracking-tight group-hover:text-sky-600 transition">MediConnect</span>
+                    </a>
+                    <nav class="hidden md:flex items-center gap-8 text-sm font-medium">
+                        <a class="hover:text-sky-700" href="index.html">Home</a>
+                        <a class="hover:text-sky-700" href="symptom-input.html">Symptom Check</a>
+                        <a class="hover:text-sky-700" href="doctor-booking.html">Book Doctor</a>
+                        <a class="hover:text-sky-700" href="e-pharma.html">E-Pharmacy</a>
+                    </nav>
+                    <button id="mobileMenuBtn" class="md:hidden inline-flex h-9 w-9 items-center justify-center rounded-md border border-slate-300 text-slate-700">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                </div>
+                <div id="mobileMenu" class="md:hidden hidden pb-4">
+                    <nav class="grid gap-2 text-sm">
+                        <a class="rounded-lg px-3 py-2 hover:bg-slate-100" href="index.html">Home</a>
+                        <a class="rounded-lg px-3 py-2 hover:bg-slate-100" href="symptom-input.html">Symptom Check</a>
+                        <a class="rounded-lg px-3 py-2 hover:bg-slate-100" href="doctor-booking.html">Book Doctor</a>
+                        <a class="rounded-lg px-3 py-2 hover:bg-slate-100" href="e-pharma.html">E-Pharmacy</a>
+                    </nav>
+                </div>
+            </div>
+        </header>
+
+        <main class="flex-1 w-full flex justify-center px-4 py-10">
+            <div class="w-full max-w-6xl">
+                <div class="relative bg-white/90 backdrop-blur rounded-2xl shadow-md p-8 md:p-10 border border-[#e7eef3] overflow-hidden">
+                    <div class="absolute -top-24 -right-24 w-72 h-72 bg-gradient-to-br from-[#1991e6]/15 to-[#00bfa6]/10 rounded-full blur-3xl"></div>
+                    <div class="absolute -bottom-32 -left-24 w-80 h-80 bg-gradient-to-tr from-[#1991e6]/10 to-[#00bfa6]/10 rounded-full blur-3xl"></div>
+                    <a href="analysis-result.html" class="inline-flex items-center gap-2 text-[#1991e6] text-sm font-medium mb-6 hover:underline back-btn !bg-transparent !text-[#1991e6] !p-0 !m-0 relative z-10">
+                        <i class="fas fa-arrow-left"></i>
+                        Back to Results
+                    </a>
+                    <h1 class="relative z-10 text-3xl md:text-4xl font-black tracking-[-0.03em] text-center text-[#0e151b] mb-10 flex items-center justify-center gap-3">
+                        <i class="fas fa-user-md text-[#1991e6]"></i>
+                        Book Your Doctor
+                    </h1>
+                    <!-- Department Selection -->
+                    <div id="departmentsView" class="space-y-6 relative z-10">
+                        <h3 class="text-xl font-semibold text-[#0e151b]">Select Department</h3>
+                        <div class="departments gap-6">
+                            <div class="department-card hover:shadow-md transition" data-department="general">
+                                <i class="fas fa-stethoscope"></i>
+                                <h3>General Medicine</h3>
+                                <p>Primary care and general health concerns</p>
+                            </div>
+                            <div class="department-card hover:shadow-md transition" data-department="pediatrics">
+                                <i class="fas fa-baby"></i>
+                                <h3>Pediatrics</h3>
+                                <p>Child and adolescent healthcare</p>
+                            </div>
+                            <div class="department-card hover:shadow-md transition" data-department="dermatology">
+                                <i class="fas fa-allergies"></i>
+                                <h3>Dermatology</h3>
+                                <p>Skin, hair, and nail conditions</p>
+                            </div>
+                            <div class="department-card hover:shadow-md transition" data-department="cardiology">
+                                <i class="fas fa-heartbeat"></i>
+                                <h3>Cardiology</h3>
+                                <p>Heart and cardiovascular health</p>
+                            </div>
+                            <div class="department-card hover:shadow-md transition" data-department="orthopedics">
+                                <i class="fas fa-bone"></i>
+                                <h3>Orthopedics</h3>
+                                <p>Bone and joint health</p>
+                            </div>
+                            <div class="department-card hover:shadow-md transition" data-department="neurology">
+                                <i class="fas fa-brain"></i>
+                                <h3>Neurology</h3>
+                                <p>Brain and nervous system disorders</p>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Doctors List (Initially Hidden) -->
+                    <div id="doctorsView" style="display:none;" class="space-y-6 relative z-10">
+                        <div class="flex items-center mb-4">
+                            <button id="backToDepartments" class="back-btn mr-4 !bg-[#e7eef3] !text-[#0e151b] hover:!bg-[#d4e1ea]">
+                                <i class="fas fa-arrow-left"></i> Back to Departments
+                            </button>
+                            <h3 id="departmentTitle" class="text-xl font-semibold text-[#0e151b] m-0"></h3>
+                        </div>
+                        <div class="doctors-list" id="doctorsList"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Booking Modal -->
+        <div id="bookingModal" class="modal">
+            <div class="modal-content relative">
+                <span class="close absolute top-4 right-6 text-2xl" id="closeModal">&times;</span>
+                <h2 id="modalTitle" class="text-2xl font-bold text-[#0e151b] mb-4 flex items-center gap-2">
+                    <i class="fas fa-calendar-alt text-[#1991e6]"></i>
+                    Book Appointment
+                </h2>
+                <div id="doctorInfo" class="bg-slate-50 border border-[#e0e6ea] p-4 rounded-xl mb-6 text-sm"></div>
+                <div class="booking-calendar space-y-6">
+                    <div>
+                        <h3 class="text-lg font-semibold text-[#0e151b] mb-3">Select Date</h3>
+                        <div class="date-selector" id="dateSelector"></div>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold text-[#0e151b] mb-3">Select Time</h3>
+                        <div class="time-slots" id="timeSlots"></div>
+                    </div>
+                    <button class="confirm-btn" id="confirmBooking">
+                        <i class="fas fa-check"></i> Confirm Booking
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="border-t border-slate-200/70 py-10">
+            <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                <div class="flex flex-col items-center gap-4 text-center">
+                    <div class="flex items-center gap-2.5">
+                        <span class="inline-flex h-8 w-8 items-center justify-center rounded-md bg-sky-600 text-white"><i class="fas fa-heartbeat"></i></span>
+                        <span class="font-extrabold">MediConnect</span>
+                    </div>
+                    <div class="flex flex-wrap items-center justify-center gap-6 text-sm text-slate-600">
+                        <a href="#" class="hover:text-slate-900">Terms</a>
+                        <a href="#" class="hover:text-slate-900">Privacy</a>
+                        <a href="#" class="hover:text-slate-900">Contact</a>
+                    </div>
+                    <p class="text-xs text-slate-500">© 2025 MediConnect. All rights reserved.</p>
+                </div>
+            </div>
+        </footer>
+
+        <script src="config.js"></script>
+        <script src="api-service.js"></script>
+        <script src="script.js"></script>
+        <script>
+            const btn = document.getElementById('mobileMenuBtn');
+            const menu = document.getElementById('mobileMenu');
+            if (btn && menu) btn.addEventListener('click', () => menu.classList.toggle('hidden'));
+        </script>
+    </body>
+</html>
