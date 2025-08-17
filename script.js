@@ -65,75 +65,14 @@ async function analyzeSymptoms(symptoms) {
         // Call the API service
         const analysis = await window.apiService.analyzeSymptoms(symptoms);
         console.log('✅ API analysis completed successfully:', analysis.riskLevel);
-        return analysis;
+    return analysis;
         
     } catch (error) {
         console.error('❌ API analysis failed:', error.message);
         console.error('🔍 Full error:', error);
-        
-        if (window.CONFIG && window.CONFIG.USE_API_ONLY) {
-            throw error; // surface error, do not fallback
-        }
-        // Fallback to mock analysis if API fails
-        console.warn('🔄 Falling back to mock analysis...');
-        return await mockAnalysis(symptoms);
+    // No mock fallback: surface error so UI can show a message and avoid redirect
+    throw error;
     }
-}
-
-// Fallback mock analysis function
-async function mockAnalysis(symptoms) {
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    // Simple keyword-based analysis as fallback
-    const symptomsLower = symptoms.toLowerCase();
-    let riskLevel = 'low';
-    let probableCauses = [];
-    let precautions = [];
-    let homeRemedies = [];
-    let recommendedSpecialist = 'general';
-    let urgency = 'routine';
-    
-    if (symptomsLower.includes('chest pain') || symptomsLower.includes('heart') || symptomsLower.includes('shortness of breath')) {
-        riskLevel = 'high';
-        urgency = 'immediate';
-        recommendedSpecialist = 'cardiology';
-        probableCauses = ['Cardiac issues', 'Angina', 'Heart attack symptoms'];
-        precautions = ['Seek immediate medical attention', 'Call emergency services if severe', 'Avoid physical exertion'];
-        homeRemedies = ['Rest immediately', 'Take prescribed medications if available', 'Monitor symptoms closely'];
-    } else if (symptomsLower.includes('headache') || symptomsLower.includes('migraine')) {
-        riskLevel = 'moderate';
-        urgency = 'within_24_hours';
-        recommendedSpecialist = 'neurology';
-        probableCauses = ['Tension headache', 'Migraine', 'Sinusitis', 'Dehydration'];
-        precautions = ['Avoid bright lights and loud noises', 'Stay hydrated', 'Get adequate rest'];
-        homeRemedies = ['Rest in a quiet, dark room', 'Apply cold compress', 'Stay hydrated', 'Over-the-counter pain relievers'];
-    } else if (symptomsLower.includes('fever') || symptomsLower.includes('cough') || symptomsLower.includes('cold')) {
-        riskLevel = 'moderate';
-        urgency = 'within_week';
-        recommendedSpecialist = 'general';
-        probableCauses = ['Viral infection', 'Common cold', 'Flu', 'Respiratory infection'];
-        precautions = ['Rest and stay hydrated', 'Avoid contact with others', 'Monitor temperature'];
-        homeRemedies = ['Rest', 'Stay hydrated', 'Over-the-counter fever reducers', 'Warm fluids'];
-    } else {
-        riskLevel = 'low';
-        urgency = 'routine';
-        recommendedSpecialist = 'general';
-        probableCauses = ['General discomfort', 'Minor health issue', 'Stress-related symptoms'];
-        precautions = ['Monitor symptoms', 'Maintain healthy lifestyle', 'Get adequate rest'];
-        homeRemedies = ['Rest', 'Stay hydrated', 'Healthy diet', 'Regular exercise'];
-    }
-    
-    return {
-        riskLevel,
-        probableCauses,
-        precautions,
-        homeRemedies,
-        recommendedSpecialist,
-        urgency,
-        symptoms: symptoms,
-        timestamp: new Date().toISOString()
-    };
 }
 
 // Page-specific functionality
@@ -146,9 +85,7 @@ document.addEventListener('DOMContentLoaded', function() {
         case 'symptom-input.html':
             initSymptomPage();
             break;
-        case 'analysis-result.html':
-            initAnalysisPage();
-            break;
+    // analysis-result.html is handled by analysis.js (AnalysisHandler)
         case 'doctor-booking.html':
             initDoctorBookingPage();
             break;
@@ -164,7 +101,6 @@ function initSymptomPage() {
     const analyseBtn = document.getElementById('analyseBtn');
     const btnText = document.getElementById('btnText');
     const loadingSpinner = document.getElementById('loadingSpinner');
-    const imageInput = document.getElementById('symptomImage');
     // Voice input setup
     const micBtn = document.getElementById('micBtn');
     const micStatus = document.getElementById('micStatus');
@@ -234,11 +170,6 @@ function initSymptomPage() {
             alert('Please describe your symptoms.');
             return;
         }
-        const file = imageInput && imageInput.files && imageInput.files[0] ? imageInput.files[0] : null;
-        if (file && file.size > 8 * 1024 * 1024) { // 8MB limit
-            alert('Image is too large. Please upload a file under 8MB.');
-            return;
-        }
         
         // Show loading state
         analyseBtn.disabled = true;
@@ -249,12 +180,7 @@ function initSymptomPage() {
             console.log('🚀 Starting symptom analysis...');
             console.log('📝 Symptoms:', symptoms);
             let analysis;
-            if (file) {
-                console.log('🖼️ Image attached:', { name: file.name, size: file.size });
-                analysis = await window.apiService.analyzeWithFlask(symptoms, file);
-            } else {
-                analysis = await analyzeSymptoms(symptoms);
-            }
+            analysis = await analyzeSymptoms(symptoms);
             
             console.log('📊 Analysis results:', analysis);
             
@@ -265,7 +191,15 @@ function initSymptomPage() {
             window.location.href = 'analysis-result.html';
         } catch (error) {
             console.error('❌ Analysis error:', error);
-            alert('Error analyzing symptoms. Please try again. Check console for details.');
+            // Show inline error and do not redirect
+            const msg = (error && error.message) ? error.message : 'Error analyzing symptoms. Please try again.';
+            const existing = document.getElementById('analysisErrorBanner');
+            if (existing) existing.remove();
+            const banner = document.createElement('div');
+            banner.id = 'analysisErrorBanner';
+            banner.className = 'mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700';
+            banner.textContent = msg;
+            form.parentElement.appendChild(banner);
         } finally {
             // Reset button state
             analyseBtn.disabled = false;
@@ -390,37 +324,7 @@ function enqueueSos(entry) {
 }
 
 // Analysis Result Page
-function initAnalysisPage() {
-    const analysisResults = JSON.parse(localStorage.getItem('analysisResults'));
-    
-    if (!analysisResults) {
-        window.location.href = 'symptom-input.html';
-        return;
-    }
-    
-    // Display risk level
-    const riskIndicator = document.getElementById('riskIndicator');
-    const riskClass = `risk-${analysisResults.riskLevel}`;
-    const riskText = analysisResults.riskLevel.charAt(0).toUpperCase() + analysisResults.riskLevel.slice(1);
-    
-    riskIndicator.className = `risk-indicator ${riskClass}`;
-    riskIndicator.innerHTML = `
-        <i class="fas fa-${analysisResults.riskLevel === 'high' ? 'exclamation-triangle' : analysisResults.riskLevel === 'moderate' ? 'info-circle' : 'check-circle'}"></i>
-        Risk Level: ${riskText}
-    `;
-    
-    // Display probable causes
-    const probableCausesDiv = document.getElementById('probableCauses');
-    probableCausesDiv.innerHTML = analysisResults.probableCauses.map(cause => `<p>• ${cause}</p>`).join('');
-    
-    // Display precautions
-    const precautionsDiv = document.getElementById('precautions');
-    precautionsDiv.innerHTML = analysisResults.precautions.map(precaution => `<p>• ${precaution}</p>`).join('');
-    
-    // Display home remedies
-    const homeRemediesDiv = document.getElementById('homeRemedies');
-    homeRemediesDiv.innerHTML = analysisResults.homeRemedies.map(remedy => `<p>• ${remedy}</p>`).join('');
-}
+// analysis-result.html logic is now handled exclusively in analysis.js
 
 // Doctor Booking Page
 function initDoctorBookingPage() {

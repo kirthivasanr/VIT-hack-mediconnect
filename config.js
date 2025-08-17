@@ -2,7 +2,14 @@
 const CONFIG = {
     // API Configuration
     API_BASE_URL: 'https://openrouter.ai/api/v1/chat/completions', // OpenRouter API endpoint
-    API_KEY: (typeof window !== 'undefined' && window.localStorage ? (localStorage.getItem('OPENROUTER_API_KEY') || '').trim() : '') || process.env.OPENROUTER_API_KEY || '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',
+    // Resolve API key with clear precedence: value in this file > localStorage > environment
+    API_KEY: (() => {
+        const FILE_KEY = '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';
+        const LS_KEY = (typeof window !== 'undefined' && window.localStorage ? (localStorage.getItem('OPENROUTER_API_KEY') || '').trim() : '');
+        const ENV_KEY = (typeof process !== 'undefined' && process.env ? (process.env.OPENROUTER_API_KEY || '').trim() : '');
+        const normalizedFileKey = FILE_KEY && !/your-openrouter-api-key-here/i.test(FILE_KEY) ? FILE_KEY.trim() : '';
+        return normalizedFileKey || LS_KEY || ENV_KEY;
+    })(),
     MODEL: 'openai/gpt-4o-mini',
     USE_API_ONLY: true, // when true, do not fallback to mock; surface errors instead
     
@@ -10,9 +17,7 @@ const CONFIG = {
     MEDICAL_API_URL: 'https://api.healthcare.com/v1/symptoms', // Placeholder medical API
     RAPID_API_URL: 'https://symptom-checker.p.rapidapi.com/analyze', // RapidAPI symptom checker
     
-    // Flask Backend (for ML image processing)
-    FLASK_API_BASE_URL: 'http://localhost:5000',
-    FLASK_ANALYZE_ENDPOINT: '/analyze', // POST multipart/form-data { symptoms, image }
+    // Frontend-only mode: ML backend removed
     
     // API Headers
     getHeaders() {
@@ -20,6 +25,7 @@ const CONFIG = {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${this.API_KEY}`,
             'HTTP-Referer': window.location.origin, // Required for OpenRouter
+            'Referer': window.location.origin,      // Some proxies normalize header name
             'X-Title': 'Telemedicine AI Assistant', // Optional: App name for OpenRouter
             // For RapidAPI (uncomment if using RapidAPI)
             // 'X-RapidAPI-Key': 'your-rapidapi-key-here',
@@ -32,28 +38,32 @@ const CONFIG = {
     MAX_RETRIES: 3,
     
     // Symptom Analysis Prompt Template
-    getAnalysisPrompt(symptoms) {
-        return `You are a medical AI assistant. Analyze the following symptoms and provide a structured response in JSON format:
+        getAnalysisPrompt(symptoms) {
+                return `You are a medical AI assistant. Analyze the following symptoms and return ONLY valid JSON (no markdown or prose outside JSON). Use clear, plain-English language (about 9th grade level), avoid jargon, and keep each description to 1–2 sentences.
 
 Symptoms: ${symptoms}
 
-Please provide analysis in this exact JSON format:
+Respond in this exact JSON schema:
 {
     "riskLevel": "low|moderate|high",
-    "probableCauses": ["cause1", "cause2", "cause3"],
-    "precautions": ["precaution1", "precaution2", "precaution3"],
-    "homeRemedies": ["remedy1", "remedy2", "remedy3"],
+    "probableCauses": [
+        { "title": "cause name", "description": "simple explanation of what this is and why it fits the symptoms" }
+    ],
+    "precautions": [
+        { "title": "action to take", "description": "what to do and why it helps; include when to stop or seek care if relevant" }
+    ],
+    "homeRemedies": [
+        { "title": "remedy name", "description": "how to do it safely and what to watch for" }
+    ],
     "recommendedSpecialist": "general|cardiology|neurology|dermatology|pediatrics|orthopedics",
     "urgency": "immediate|within_24_hours|within_week|routine"
 }
 
-Risk levels:
-- "low": Minor symptoms, can be managed at home
-- "moderate": Symptoms requiring medical attention but not emergency
-- "high": Serious symptoms requiring immediate medical attention
-
-Be conservative in risk assessment. Always prioritize patient safety.`;
-    },
+Rules:
+- Provide 3–5 items in each list when reasonable.
+- Keep advice safe and conservative; do not provide prescriptions.
+- If symptoms suggest an emergency, set riskLevel to "high" and urgency to "immediate".`;
+        },
     
     // Error Messages
     ERROR_MESSAGES: {

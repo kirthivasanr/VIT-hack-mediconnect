@@ -35,115 +35,6 @@ class ApiService {
         }
     }
 
-    // Analyze with Flask when an image is present (multipart/form-data)
-    async analyzeWithFlask(symptoms, file) {
-        if (!symptoms || symptoms.trim().length < 10) {
-            throw new Error('Please provide more detailed symptoms (at least 10 characters)');
-        }
-        
-        // Check if Flask API is configured and available
-        if (this.config.FLASK_API_BASE_URL && this.config.FLASK_ANALYZE_ENDPOINT) {
-            try {
-                const url = `${this.config.FLASK_API_BASE_URL}${this.config.FLASK_ANALYZE_ENDPOINT}`;
-                const formData = new FormData();
-                formData.append('symptoms', symptoms);
-                if (file) formData.append('image', file);
-
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), this.config.REQUEST_TIMEOUT || 30000);
-                
-                const response = await fetch(url, {
-                    method: 'POST',
-                    body: formData,
-                    signal: controller.signal
-                });
-                clearTimeout(timeoutId);
-                
-                if (!response.ok) {
-                    const errText = await response.text().catch(()=> '');
-                    throw new Error(`Flask API error (${response.status}): ${errText || 'Unknown error'}`);
-                }
-                
-                const analysis = await response.json();
-                // Normalize and ensure required fields
-                const requiredFields = ['riskLevel', 'probableCauses', 'precautions', 'homeRemedies'];
-                requiredFields.forEach(f => { if (!(f in analysis)) throw new Error('Invalid Flask response'); });
-                analysis.timestamp = new Date().toISOString();
-                analysis.symptoms = this.lastAnalyzedSymptoms || symptoms;
-                return analysis;
-                
-            } catch (err) {
-                console.warn('Flask API failed, falling back to image-based randomizer:', err.message);
-                // Fall back to randomizer if Flask API fails
-                return this.generateImageBasedDiagnosis(symptoms, file);
-            }
-        } else {
-            // Use image-based randomizer directly
-            return this.generateImageBasedDiagnosis(symptoms, file);
-        }
-    }
-
-    // Generate image-based diagnosis using randomizer logic
-    generateImageBasedDiagnosis(symptoms, file) {
-        console.log('🖼️ Generating image-based diagnosis using randomizer...');
-        
-        // Define the skin conditions with their sample counts
-        const skinConditions = [
-            { name: 'Eczema', samples: 1677, riskLevel: 'moderate' },
-            { name: 'Psoriasis', samples: 2000, riskLevel: 'moderate' },
-            { name: 'Lichen Planus', samples: 2000, riskLevel: 'moderate' },
-            { name: 'Basal Cell Carcinoma (BCC)', samples: 3323, riskLevel: 'high' },
-            { name: 'Melanocytic Nevi (NV)', samples: 7970, riskLevel: 'low' },
-            { name: 'Warts', samples: 2103, riskLevel: 'low' },
-            { name: 'Molluscum', samples: 2103, riskLevel: 'low' },
-            { name: 'Viral Infections', samples: 2103, riskLevel: 'moderate' },
-            { name: 'Seborrheic Keratoses', samples: 1800, riskLevel: 'low' },
-            { name: 'Benign Tumors', samples: 1800, riskLevel: 'low' },
-            { name: 'Melanoma', samples: 15750, riskLevel: 'high' },
-            { name: 'Tinea', samples: 1700, riskLevel: 'moderate' },
-            { name: 'Ringworm', samples: 1700, riskLevel: 'moderate' },
-            { name: 'Candidiasis', samples: 1700, riskLevel: 'moderate' },
-            { name: 'Fungal Infections', samples: 1700, riskLevel: 'moderate' },
-            { name: 'Benign Keratosis-like Lesions (BKL)', samples: 2624, riskLevel: 'low' },
-            { name: 'Atopic Dermatitis', samples: 1250, riskLevel: 'moderate' }
-        ];
-
-        // Calculate total samples for weighted random selection
-        const totalSamples = skinConditions.reduce((sum, condition) => sum + condition.samples, 0);
-        
-        // Generate random number for weighted selection
-        let random = Math.random() * totalSamples;
-        let selectedCondition = skinConditions[0]; // Default fallback
-        
-        // Select condition based on weighted probability
-        for (const condition of skinConditions) {
-            random -= condition.samples;
-            if (random <= 0) {
-                selectedCondition = condition;
-                break;
-            }
-        }
-
-        console.log(`🎯 Selected condition: ${selectedCondition.name} (${selectedCondition.samples} samples)`);
-
-        // Generate diagnosis based on selected condition
-        const diagnosis = this.generateDiagnosisForCondition(selectedCondition, symptoms);
-        
-        // Add image analysis metadata
-        diagnosis.imageAnalysis = {
-            condition: selectedCondition.name,
-            confidence: Math.random() * 0.3 + 0.7, // 70-100% confidence
-            sampleCount: selectedCondition.samples,
-            analysisMethod: 'AI-powered image analysis with dermatological dataset'
-        };
-        
-        diagnosis.timestamp = new Date().toISOString();
-        diagnosis.symptoms = this.lastAnalyzedSymptoms || symptoms;
-        diagnosis.hasImage = true;
-        
-        return diagnosis;
-    }
-
     // Generate specific diagnosis for a skin condition
     generateDiagnosisForCondition(condition, symptoms) {
         const diagnosisTemplates = {
@@ -314,7 +205,7 @@ class ApiService {
                     }
                 ],
                 temperature: 0.3,
-                max_tokens: 500
+                max_tokens: 700
             };
 
             console.log('📤 Sending API request to:', this.config.API_BASE_URL);
@@ -425,10 +316,25 @@ class ApiService {
                 analysis.riskLevel = 'moderate'; // Default to moderate if invalid
             }
 
-            // Ensure arrays are arrays
-            analysis.probableCauses = Array.isArray(analysis.probableCauses) ? analysis.probableCauses : [analysis.probableCauses];
-            analysis.precautions = Array.isArray(analysis.precautions) ? analysis.precautions : [analysis.precautions];
-            analysis.homeRemedies = Array.isArray(analysis.homeRemedies) ? analysis.homeRemedies : [analysis.homeRemedies];
+            // Normalize arrays to array of objects { title, description }
+            const toItems = (arr) => {
+                const list = Array.isArray(arr) ? arr : [arr];
+                return list
+                    .filter(Boolean)
+                    .map((item) => {
+                        if (typeof item === 'string') {
+                            return { title: item, description: '' };
+                        }
+                        if (typeof item === 'object' && item.title) {
+                            return { title: String(item.title), description: String(item.description || '') };
+                        }
+                        // Fallback stringify unknown types
+                        return { title: String(item), description: '' };
+                    });
+            };
+            analysis.probableCauses = toItems(analysis.probableCauses);
+            analysis.precautions = toItems(analysis.precautions);
+            analysis.homeRemedies = toItems(analysis.homeRemedies);
 
             // Add timestamp
             analysis.timestamp = new Date().toISOString();

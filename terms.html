@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Terms of Service - MediConnect</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Noto+Sans:wght@400;500;700;900&display=swap" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  </head>
+  <body class="bg-slate-50 min-h-screen flex flex-col" style='font-family: Manrope, "Noto Sans", sans-serif;'>
+    <!-- Header -->
+    <header class="sticky top-0 z-40 border-b border-slate-200/70 bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/60">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="flex h-16 items-center justify-between">
+          <a href="index.html" class="flex items-center gap-2.5 group" aria-label="MediConnect Home">
+            <span class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-sky-500 to-emerald-400 text-white shadow-sm">
+              <i class="fas fa-heartbeat"></i>
+            </span>
+            <span class="text-lg font-extrabold tracking-tight group-hover:text-sky-600 transition">MediConnect</span>
+          </a>
+          <nav class="hidden md:flex items-center gap-8 text-sm font-medium">
+            <a class="hover:text-sky-700" href="index.html">Home</a>
+            <a class="hover:text-sky-700" href="symptom-input.html">Symptom Check</a>
+            <a class="hover:text-sky-700" href="doctor-booking.html">Book Doctor</a>
+            <a class="hover:text-sky-700" href="e-pharma.html">E-Pharmacy</a>
+          </nav>
+          <button id="mobileMenuBtn" class="md:hidden inline-flex h-9 w-9 items-center justify-center rounded-md border border-slate-300 text-slate-700">
+            <i class="fas fa-bars"></i>
+          </button>
+        </div>
+        <div id="mobileMenu" class="md:hidden hidden pb-4">
+          <nav class="grid gap-2 text-sm">
+            <a class="rounded-lg px-3 py-2 hover:bg-slate-100" href="index.html">Home</a>
+            <a class="rounded-lg px-3 py-2 hover:bg-slate-100" href="symptom-input.html">Symptom Check</a>
+            <a class="rounded-lg px-3 py-2 hover:bg-slate-100" href="doctor-booking.html">Book Doctor</a>
+            <a class="rounded-lg px-3 py-2 hover:bg-slate-100" href="e-pharma.html">E-Pharmacy</a>
+          </nav>
+        </div>
+      </div>
+    </header>
+
+    <!-- Content -->
+    <main class="flex-1 w-full flex justify-center px-4 py-10">
+      <div class="w-full max-w-4xl @container">
+        <div class="relative bg-white/90 backdrop-blur rounded-2xl shadow-md p-8 md:p-10 border border-[#e7eef3] overflow-hidden">
+          <div class="absolute -top-24 -right-24 w-72 h-72 bg-gradient-to-br from-[#1991e6]/15 to-[#00bfa6]/10 rounded-full blur-3xl"></div>
+          <a href="index.html" class="inline-flex items-center gap-2 text-[#1991e6] text-sm font-medium mb-6 hover:underline">
+            <i class="fas fa-arrow-left"></i>
+            Back to Home
+          </a>
+          <div class="relative z-10 space-y-6">
+            <h1 class="text-3xl md:text-4xl font-black tracking-[-0.03em] text-[#0e151b] flex items-center gap-3">
+              <i class="fas fa-scale-balanced text-[#1991e6]"></i>
+              Terms of Service
+            </h1>
+            <p class="text-[#4e7997]">Last updated: August 2025</p>
+            <div class="space-y-6 text-slate-700 leading-relaxed">
+              <section>
+                <h2 class="text-xl font-semibold text-[#0e151b] mb-2">1. Overview</h2>
+                <p>MediConnect provides informational guidance and tools such as AI-assisted symptom analysis. We do not provide medical diagnosis, treatment, or prescriptions. Always consult a licensed healthcare professional for medical decisions.</p>
+              </section>
+              <section>
+                <h2 class="text-xl font-semibold text-[#0e151b] mb-2">2. Acceptable Use</h2>
+                <ul class="list-disc pl-6 space-y-1">
+                  <li>Do not use the platform for emergencies. Call your local emergency number.</li>
+                  <li>Do not attempt to misuse, reverse-engineer, or disrupt the service.</li>
+                  <li>Provide accurate information to receive relevant guidance.</li>
+                </ul>
+              </section>
+              <section>
+                <h2 class="text-xl font-semibold text-[#0e151b] mb-2">3. No Medical Advice</h2>
+                <p>Content is for informational purposes only and does not substitute professional medical advice. If you think you may have a medical emergency, call your doctor or emergency services immediately.</p>
+              </section>
+              <section>
+                <h2 class="text-xl font-semibold text-[#0e151b] mb-2">4. Third-Party Links</h2>
+                <p>We may provide links to external sites (e.g., pharmacies). We are not responsible for their content, pricing, or availability.</p>
+              </section>
+              <section>
+                <h2 class="text-xl font-semibold text-[#0e151b] mb-2">5. Changes</h2>
+                <p>We may update these Terms from time to time. Continued use of the service indicates acceptance of the updated Terms.</p>
+              </section>
+              <div class="rounded-xl border border-amber-200 bg-amber-50 p-4 text-amber-800 text-sm">
+                <i class="fas fa-triangle-exclamation"></i>
+                <span class="ml-2">This site is not a substitute for professional medical care.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-200/70 py-10">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-col items-center gap-4 text-center">
+          <div class="flex items-center gap-2.5">
+            <span class="inline-flex h-8 w-8 items-center justify-center rounded-md bg-sky-600 text-white"><i class="fas fa-heartbeat"></i></span>
+            <span class="font-extrabold">MediConnect</span>
+          </div>
+          <div class="flex flex-wrap items-center justify-center gap-6 text-sm text-slate-600">
+            <a href="terms.html" class="hover:text-slate-900">Terms</a>
+            <a href="privacy.html" class="hover:text-slate-900">Privacy</a>
+          </div>
+          <p class="text-xs text-slate-500">© 2025 MediConnect. All rights reserved.</p>
+        </div>
+      </div>
+    </footer>
+
+    <script>
+      const btn = document.getElementById('mobileMenuBtn');
+      const menu = document.getElementById('mobileMenu');
+      if (btn && menu) btn.addEventListener('click', () => menu.classList.toggle('hidden'));
+    </script>
+  </body>
+  </html>

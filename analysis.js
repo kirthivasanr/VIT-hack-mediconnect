@@ -112,10 +112,7 @@ class AnalysisHandler {
 
     // Display analysis details
     displayAnalysisDetails() {
-        // Display image analysis information if available
-        if (this.analysisResults.hasImage && this.analysisResults.imageAnalysis) {
-            this.displayImageAnalysis();
-        }
+    // Image analysis flow removed (frontend-only)
         
         this.displaySection('probableCauses', 'Probable Causes');
         this.displaySection('precautions', 'Precautions');
@@ -127,55 +124,7 @@ class AnalysisHandler {
         }
     }
 
-    // Display image analysis information
-    displayImageAnalysis() {
-        const imageAnalysis = this.analysisResults.imageAnalysis;
-        const resultDetails = document.querySelector('.result-details');
-        
-        if (resultDetails && imageAnalysis) {
-            const imageSection = document.createElement('div');
-            imageSection.className = 'image-analysis-section';
-            imageSection.innerHTML = `
-                <h3 class="flex items-center gap-2 text-xl font-semibold text-[#0e151b] mb-2">
-                    <i class="fas fa-camera text-[#1991e6]"></i> 
-                    Image Analysis Results
-                </h3>
-                <div class="image-analysis-details bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg border border-blue-200">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="analysis-item">
-                            <strong class="text-[#1991e6]">Detected Condition:</strong>
-                            <span class="ml-2 font-medium">${imageAnalysis.condition}</span>
-                        </div>
-                        <div class="analysis-item">
-                            <strong class="text-[#1991e6]">Confidence Level:</strong>
-                            <span class="ml-2 font-medium">
-                                <span class="confidence-indicator ${imageAnalysis.confidence >= 0.9 ? 'confidence-high' : imageAnalysis.confidence >= 0.7 ? 'confidence-medium' : 'confidence-low'}">
-                                    ${Math.round(imageAnalysis.confidence * 100)}%
-                                </span>
-                            </span>
-                        </div>
-                        <div class="analysis-item">
-                            <strong class="text-[#1991e6]">Analysis Method:</strong>
-                            <span class="ml-2 text-sm">${imageAnalysis.analysisMethod}</span>
-                        </div>
-                        <div class="analysis-item">
-                            <strong class="text-[#1991e6]">Dataset Samples:</strong>
-                            <span class="ml-2 font-medium">${imageAnalysis.sampleCount.toLocaleString()}</span>
-                        </div>
-                    </div>
-                    <div class="mt-3 p-3 bg-blue-100 rounded-lg">
-                        <p class="text-sm text-blue-800 m-0">
-                            <i class="fas fa-info-circle mr-2"></i>
-                            This analysis was performed using AI-powered image recognition trained on a comprehensive dermatological dataset.
-                        </p>
-                    </div>
-                </div>
-            `;
-            
-            // Insert at the beginning of result details
-            resultDetails.insertBefore(imageSection, resultDetails.firstChild);
-        }
-    }
+    // Image analysis UI removed
 
     // Display a section of analysis details
     displaySection(sectionId, title) {
@@ -186,12 +135,20 @@ class AnalysisHandler {
             ? this.analysisResults[sectionId] 
             : [this.analysisResults[sectionId]];
 
-        container.innerHTML = items.map(item => `
-            <div class="analysis-item">
-                <i class="fas fa-chevron-right"></i>
-                <span>${item}</span>
-            </div>
-        `).join('');
+        container.innerHTML = items.map(item => {
+            const isObj = item && typeof item === 'object';
+            const title = isObj ? (item.title || '') : String(item);
+            const desc = isObj ? (item.description || '') : '';
+            return `
+                <div class="analysis-item">
+                    <i class="fas fa-chevron-right"></i>
+                    <div class="flex-1">
+                        <div class="font-medium">${title}</div>
+                        ${desc ? `<div class="text-slate-600 text-sm leading-relaxed">${desc}</div>` : ''}
+                    </div>
+                </div>
+            `;
+        }).join('');
     }
 
     // Display recommended specialist
@@ -267,20 +224,7 @@ class AnalysisHandler {
     printResults() {
         const printWindow = window.open('', '_blank');
         
-        // Generate image analysis section if available
-        let imageAnalysisSection = '';
-        if (this.analysisResults.hasImage && this.analysisResults.imageAnalysis) {
-            const ia = this.analysisResults.imageAnalysis;
-            imageAnalysisSection = `
-                <div class="section">
-                    <h3>Image Analysis Results:</h3>
-                    <div class="item"><strong>Detected Condition:</strong> ${ia.condition}</div>
-                    <div class="item"><strong>Confidence Level:</strong> ${Math.round(ia.confidence * 100)}%</div>
-                    <div class="item"><strong>Analysis Method:</strong> ${ia.analysisMethod}</div>
-                    <div class="item"><strong>Dataset Samples:</strong> ${ia.sampleCount.toLocaleString()}</div>
-                </div>
-            `;
-        }
+    // Image analysis section removed
         
         printWindow.document.write(`
             <html>
@@ -302,28 +246,40 @@ class AnalysisHandler {
                     <div class="header">
                         <h1>MediConnect AI - Analysis Results</h1>
                         <p>Generated on: ${new Date().toLocaleString()}</p>
-                        ${this.analysisResults.hasImage ? '<p><strong>Analysis Type:</strong> Image-based AI Diagnosis</p>' : '<p><strong>Analysis Type:</strong> Symptom-based AI Analysis</p>'}
+                        <p><strong>Analysis Type:</strong> Symptom-based AI Analysis</p>
                     </div>
                     
                     <div class="risk-level risk-${this.analysisResults.riskLevel}">
                         <h2>Risk Level: ${this.analysisResults.riskLevel.toUpperCase()}</h2>
                     </div>
                     
-                    ${imageAnalysisSection}
+                    
                     
                     <div class="section">
                         <h3>Probable Causes:</h3>
-                        ${this.analysisResults.probableCauses.map(cause => `<div class="item">• ${cause}</div>`).join('')}
+                        ${this.analysisResults.probableCauses.map(it => {
+                            const t = it && typeof it === 'object' ? it.title : String(it);
+                            const d = it && typeof it === 'object' ? (it.description || '') : '';
+                            return `<div class="item">• <strong>${t}</strong>${d ? ` – ${d}` : ''}</div>`;
+                        }).join('')}
                     </div>
                     
                     <div class="section">
                         <h3>Precautions:</h3>
-                        ${this.analysisResults.precautions.map(precaution => `<div class="item">• ${precaution}</div>`).join('')}
+                        ${this.analysisResults.precautions.map(it => {
+                            const t = it && typeof it === 'object' ? it.title : String(it);
+                            const d = it && typeof it === 'object' ? (it.description || '') : '';
+                            return `<div class="item">• <strong>${t}</strong>${d ? ` – ${d}` : ''}</div>`;
+                        }).join('')}
                     </div>
                     
                     <div class="section">
                         <h3>Home Remedies:</h3>
-                        ${this.analysisResults.homeRemedies.map(remedy => `<div class="item">• ${remedy}</div>`).join('')}
+                        ${this.analysisResults.homeRemedies.map(it => {
+                            const t = it && typeof it === 'object' ? it.title : String(it);
+                            const d = it && typeof it === 'object' ? (it.description || '') : '';
+                            return `<div class="item">• <strong>${t}</strong>${d ? ` – ${d}` : ''}</div>`;
+                        }).join('')}
                     </div>
                     
                     ${this.analysisResults.recommendedSpecialist ? `

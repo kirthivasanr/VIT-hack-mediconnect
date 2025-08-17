@@ -684,27 +684,27 @@ body {
 }
 
 .urgent-immediate {
-    background: rgba(244, 67, 54, 0.1);
-    color: #d32f2f;
-    border: 1px solid #f44336;
+    background: rgba(244, 67, 54, 0.28);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.55);
 }
 
 .urgent-24h {
-    background: rgba(255, 152, 0, 0.1);
-    color: #f57c00;
-    border: 1px solid #ff9800;
+    background: rgba(255, 152, 0, 0.28);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.55);
 }
 
 .urgent-week {
-    background: rgba(33, 150, 243, 0.1);
-    color: #1976d2;
-    border: 1px solid #2196f3;
+    background: rgba(33, 150, 243, 0.28);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.55);
 }
 
 .urgent-routine {
-    background: rgba(76, 175, 80, 0.1);
-    color: #2e7d32;
-    border: 1px solid #4caf50;
+    background: rgba(76, 175, 80, 0.28);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.55);
 }
 
 .analysis-item {
