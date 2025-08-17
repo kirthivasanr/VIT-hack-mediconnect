@@ -4,13 +4,13 @@ const CONFIG = {
     API_BASE_URL: 'https://openrouter.ai/api/v1/chat/completions', // OpenRouter API endpoint
     // Resolve API key with clear precedence: value in this file > localStorage > environment
     API_KEY: (() => {
-        const FILE_KEY = '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';
+        const FILE_KEY = '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';
         const LS_KEY = (typeof window !== 'undefined' && window.localStorage ? (localStorage.getItem('OPENROUTER_API_KEY') || '').trim() : '');
         const ENV_KEY = (typeof process !== 'undefined' && process.env ? (process.env.OPENROUTER_API_KEY || '').trim() : '');
         const normalizedFileKey = FILE_KEY && !/your-openrouter-api-key-here/i.test(FILE_KEY) ? FILE_KEY.trim() : '';
         return normalizedFileKey || LS_KEY || ENV_KEY;
     })(),
-    MODEL: 'openai/gpt-4o-mini',
+    MODEL: 'openai/gpt-3.5-turbo', // Changed to a more commonly available model
     USE_API_ONLY: true, // when true, do not fallback to mock; surface errors instead
     
     // Alternative medical API endpoints (you can switch between these)
