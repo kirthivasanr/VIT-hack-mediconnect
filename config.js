@@ -4,7 +4,7 @@ const CONFIG = {
     API_BASE_URL: 'https://openrouter.ai/api/v1/chat/completions', // OpenRouter API endpoint
     // Resolve API key with clear precedence: value in this file > localStorage > environment
     API_KEY: (() => {
-        const FILE_KEY = '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';
+        const FILE_KEY = '';
         const LS_KEY = (typeof window !== 'undefined' && window.localStorage ? (localStorage.getItem('OPENROUTER_API_KEY') || '').trim() : '');
         const ENV_KEY = (typeof process !== 'undefined' && process.env ? (process.env.OPENROUTER_API_KEY || '').trim() : '');
         const normalizedFileKey = FILE_KEY && !/your-openrouter-api-key-here/i.test(FILE_KEY) ? FILE_KEY.trim() : '';
@@ -97,3 +97,4 @@ if (typeof window !== 'undefined') {
     // For non-browser environments
     module.exports = CONFIG;
 }
+
